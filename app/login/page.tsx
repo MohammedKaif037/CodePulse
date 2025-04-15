@@ -39,7 +39,11 @@ export default function LoginPage() {
         throw new Error(data.error || "Failed to sign in")
       }
 
-      // Redirect will be handled by the API route
+      // Get the redirect URL from the response
+      const data = await response.json()
+
+      // Redirect to the appropriate page
+      router.push(data.redirectUrl || "/onboarding")
     } catch (err: any) {
       setError(err.message)
       setIsLoading(false)

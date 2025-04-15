@@ -1,12 +1,104 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ChevronLeft, ChevronRight, Flame } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export function StreakCalendar() {
   const [currentMonth, setCurrentMonth] = useState(new Date())
+  const [activityData, setActivityData] = useState<Record<string, number>>({})
+  const [streak, setStreak] = useState(0)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchCodingActivity = async () => {
+      try {
+        const response = await fetch("/api/coding-activity")
+        if (response.ok) {
+          const { data } = await response.json()
+
+          // Transform the data into the format we need
+          const formattedData: Record<string, number> = {}
+          data.forEach((activity: any) => {
+            const date = activity.date
+            // Convert minutes to intensity level (0-3)
+            const minutes = activity.minutes || 0
+            let intensity = 0
+            if (minutes > 0 && minutes < 30) intensity = 1
+            else if (minutes >= 30 && minutes < 120) intensity = 2
+            else if (minutes >= 120) intensity = 3
+
+            formattedData[date] = intensity
+          })
+
+          setActivityData(formattedData)
+
+          // Calculate current streak
+          const today = new Date().toISOString().split("T")[0]
+          let currentStreak = 0
+          const date = new Date()
+
+          // Check backwards from today
+          while (true) {
+            const dateString = date.toISOString().split("T")[0]
+            if (formattedData[dateString] && formattedData[dateString] > 0) {
+              currentStreak++
+              date.setDate(date.getDate() - 1)
+            } else {
+              break
+            }
+          }
+
+          setStreak(currentStreak)
+        } else {
+          // If API doesn't exist yet or fails, use mock data
+          setActivityData({
+            "2025-04-01": 2,
+            "2025-04-02": 3,
+            "2025-04-03": 1,
+            "2025-04-04": 0,
+            "2025-04-05": 2,
+            "2025-04-06": 1,
+            "2025-04-07": 3,
+            "2025-04-08": 3,
+            "2025-04-09": 2,
+            "2025-04-10": 1,
+            "2025-04-11": 0,
+            "2025-04-12": 0,
+            "2025-04-13": 1,
+            "2025-04-14": 3,
+          })
+          setStreak(7)
+        }
+      } catch (error) {
+        console.error("Error fetching coding activity:", error)
+        // Fallback to mock data
+        setActivityData({
+          "2025-04-01": 2,
+          "2025-04-02": 3,
+          "2025-04-03": 1,
+          "2025-04-04": 0,
+          "2025-04-05": 2,
+          "2025-04-06": 1,
+          "2025-04-07": 3,
+          "2025-04-08": 3,
+          "2025-04-09": 2,
+          "2025-04-10": 1,
+          "2025-04-11": 0,
+          "2025-04-12": 0,
+          "2025-04-13": 1,
+          "2025-04-14": 3,
+        })
+        setStreak(7)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCodingActivity()
+  }, [])
 
   const prevMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1))
@@ -14,25 +106,6 @@ export function StreakCalendar() {
 
   const nextMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1))
-  }
-
-  // Mock data for coding activity
-  const activityData = {
-    // Format: "YYYY-MM-DD": intensity (0-3)
-    "2025-04-01": 2,
-    "2025-04-02": 3,
-    "2025-04-03": 1,
-    "2025-04-04": 0,
-    "2025-04-05": 2,
-    "2025-04-06": 1,
-    "2025-04-07": 3,
-    "2025-04-08": 3,
-    "2025-04-09": 2,
-    "2025-04-10": 1,
-    "2025-04-11": 0,
-    "2025-04-12": 0,
-    "2025-04-13": 1,
-    "2025-04-14": 3,
   }
 
   const renderCalendar = () => {
@@ -118,36 +191,42 @@ export function StreakCalendar() {
         </div>
         <CardDescription className="flex items-center">
           <Flame className="mr-1 h-4 w-4 text-purple-600" />
-          Current streak: 7 days
+          Current streak: {loading ? <Skeleton className="h-4 w-8 ml-1" /> : `${streak} days`}
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-7 gap-1 text-center">
-          {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
-            <div key={day} className="text-xs font-medium text-gray-500">
-              {day}
+        {loading ? (
+          <Skeleton className="h-48 w-full" />
+        ) : (
+          <>
+            <div className="grid grid-cols-7 gap-1 text-center">
+              {["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"].map((day) => (
+                <div key={day} className="text-xs font-medium text-gray-500">
+                  {day}
+                </div>
+              ))}
+              {renderCalendar()}
             </div>
-          ))}
-          {renderCalendar()}
-        </div>
-        <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
-          <div className="flex items-center gap-1">
-            <div className="h-3 w-3 rounded-sm bg-gray-100"></div>
-            <span>None</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="h-3 w-3 rounded-sm bg-purple-200"></div>
-            <span>Light</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="h-3 w-3 rounded-sm bg-purple-400"></div>
-            <span>Medium</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="h-3 w-3 rounded-sm bg-purple-600"></div>
-            <span>Heavy</span>
-          </div>
-        </div>
+            <div className="mt-4 flex items-center justify-between text-xs text-gray-500">
+              <div className="flex items-center gap-1">
+                <div className="h-3 w-3 rounded-sm bg-gray-100"></div>
+                <span>None</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="h-3 w-3 rounded-sm bg-purple-200"></div>
+                <span>Light</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="h-3 w-3 rounded-sm bg-purple-400"></div>
+                <span>Medium</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="h-3 w-3 rounded-sm bg-purple-600"></div>
+                <span>Heavy</span>
+              </div>
+            </div>
+          </>
+        )}
       </CardContent>
     </Card>
   )

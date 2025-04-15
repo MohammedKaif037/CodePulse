@@ -24,9 +24,11 @@ export async function POST(request: Request) {
 
   // If profile exists and has completed onboarding, redirect to dashboard
   // Otherwise, redirect to onboarding
-  const redirectPath = profile ? "/dashboard" : "/onboarding"
+  const redirectUrl = profile ? "/dashboard" : "/onboarding"
 
-  return NextResponse.redirect(`${requestUrl.origin}${redirectPath}`, {
-    status: 301,
+  // Return JSON with redirect URL instead of redirecting directly
+  return NextResponse.json({
+    success: true,
+    redirectUrl: redirectUrl,
   })
 }

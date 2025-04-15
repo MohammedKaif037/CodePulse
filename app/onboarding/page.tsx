@@ -12,11 +12,13 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ArrowLeft, ArrowRight, Check, Code2 } from "lucide-react"
 import { toast } from "@/components/ui/use-toast"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export default function OnboardingPage() {
   const router = useRouter()
   const [step, setStep] = useState(1)
   const totalSteps = 8
+  const [error, setError] = useState<string | null>(null)
 
   // Form state
   const [formData, setFormData] = useState({
@@ -79,6 +81,7 @@ export default function OnboardingPage() {
 
   const submitProfile = async () => {
     try {
+      setError(null)
       const response = await fetch("/api/user-profile", {
         method: "POST",
         headers: {
@@ -87,8 +90,10 @@ export default function OnboardingPage() {
         body: JSON.stringify(formData),
       })
 
+      const responseData = await response.json()
+
       if (!response.ok) {
-        throw new Error("Failed to save profile")
+        throw new Error(responseData.error || "Failed to save profile")
       }
 
       toast({
@@ -97,8 +102,9 @@ export default function OnboardingPage() {
       })
 
       router.push("/dashboard")
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error saving profile:", error)
+      setError(error.message || "Failed to save your profile. Please try again.")
       toast({
         title: "Error",
         description: "Failed to save your profile. Please try again.",
@@ -129,6 +135,12 @@ export default function OnboardingPage() {
           </CardHeader>
 
           <CardContent className="pt-6">
+            {error && (
+              <Alert variant="destructive" className="mb-4">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
             {step === 1 && (
               <div className="space-y-4">
                 <div className="space-y-2">
