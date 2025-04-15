@@ -19,7 +19,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 400 })
   }
 
-  return NextResponse.redirect(`${requestUrl.origin}/dashboard`, {
+  // Check if user has completed onboarding
+  const { data: profile } = await supabase.from("profiles").select("*").eq("id", data.user.id).single()
+
+  // If profile exists and has completed onboarding, redirect to dashboard
+  // Otherwise, redirect to onboarding
+  const redirectPath = profile ? "/dashboard" : "/onboarding"
+
+  return NextResponse.redirect(`${requestUrl.origin}${redirectPath}`, {
     status: 301,
   })
 }

@@ -27,7 +27,13 @@ export async function middleware(req: NextRequest) {
 
   // If accessing auth routes while already authenticated
   if (isAuthRoute && session) {
-    return NextResponse.redirect(new URL("/dashboard", req.url))
+    // Check if user has completed onboarding
+    const supabaseClient = createMiddlewareClient({ req, res })
+    const { data: profile } = await supabaseClient.from("profiles").select("*").eq("id", session.user.id).single()
+
+    // If profile exists, redirect to dashboard, otherwise to onboarding
+    const redirectPath = profile ? "/dashboard" : "/onboarding"
+    return NextResponse.redirect(new URL(redirectPath, req.url))
   }
 
   return res
