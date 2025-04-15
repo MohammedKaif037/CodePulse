@@ -3,7 +3,7 @@ import { cookies } from "next/headers"
 import { NextResponse } from "next/server"
 
 export async function POST(request: Request) {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
 
   // Get the current user
@@ -45,7 +45,7 @@ export async function POST(request: Request) {
 }
 
 export async function GET() {
-  const cookieStore = cookies()
+  const cookieStore = await cookies()
   const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
 
   // Get the current user

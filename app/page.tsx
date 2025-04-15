@@ -35,7 +35,7 @@ export default function HomePage() {
                 </p>
               </div>
               <div className="space-x-4">
-                <Link href="/onboarding">
+                <Link href="/login">
                   <Button size="lg" className="bg-purple-600 hover:bg-purple-700">
                     Get Started <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>

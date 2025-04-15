@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Bell, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -14,8 +14,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { SidebarTrigger } from "@/components/ui/sidebar"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 export function DashboardHeader() {
+  const router = useRouter()
   const [notifications, setNotifications] = useState([
     {
       id: 1,
@@ -39,6 +42,24 @@ export function DashboardHeader() {
       read: true,
     },
   ])
+  const [userProfile, setUserProfile] = useState<any>(null)
+
+  useEffect(() => {
+    // Fetch user profile data
+    const fetchUserProfile = async () => {
+      try {
+        const response = await fetch("/api/user-profile")
+        if (response.ok) {
+          const { data } = await response.json()
+          setUserProfile(data)
+        }
+      } catch (error) {
+        console.error("Error fetching user profile:", error)
+      }
+    }
+
+    fetchUserProfile()
+  }, [])
 
   const unreadCount = notifications.filter((n) => !n.read).length
 
@@ -48,6 +69,10 @@ export function DashboardHeader() {
 
   const markAllAsRead = () => {
     setNotifications(notifications.map((n) => ({ ...n, read: true })))
+  }
+
+  const handleLogout = async () => {
+    router.push("/logout")
   }
 
   return (
@@ -116,18 +141,21 @@ export function DashboardHeader() {
               <Button variant="ghost" size="icon" className="rounded-full">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src="/placeholder.svg?height=32&width=32" alt="User" />
-                  <AvatarFallback>JD</AvatarFallback>
+                  <AvatarFallback>{userProfile?.name?.charAt(0) || "U"}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>{userProfile?.name || "My Account"}</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Profile</DropdownMenuItem>
-              <DropdownMenuItem>Settings</DropdownMenuItem>
-              <DropdownMenuItem>Subscription</DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/profile">Profile</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/dashboard/settings">Settings</Link>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Log out</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>Log out</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
