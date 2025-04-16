@@ -82,19 +82,39 @@ export default function OnboardingPage() {
   const submitProfile = async () => {
     try {
       setError(null)
+
+      // Validate required fields
+      if (!formData.name) {
+        setError("Please enter your name")
+        return
+      }
+
+      // Ensure arrays are initialized
+      const dataToSubmit = {
+        ...formData,
+        technologies: formData.technologies || [],
+        trackingMetrics: formData.trackingMetrics || [],
+        preferences: formData.preferences || [],
+      }
+
+      console.log("Submitting profile data:", dataToSubmit)
+
       const response = await fetch("/api/user-profile", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(dataToSubmit),
       })
 
-      const responseData = await response.json()
-
       if (!response.ok) {
+        const responseData = await response.json()
+        console.error("Profile submission error:", responseData)
         throw new Error(responseData.error || "Failed to save profile")
       }
+
+      const responseData = await response.json()
+      console.log("Profile saved successfully:", responseData)
 
       toast({
         title: "Profile saved",
