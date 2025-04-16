@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import MarkdownIt from "markdown-it"
 
 type Message = {
   id: string
@@ -27,6 +28,12 @@ export function AiChat() {
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const scrollAreaRef = useRef<HTMLDivElement>(null)
+  const md = new MarkdownIt({
+    html: false,
+    linkify: true,
+    typographer: true,
+    breaks: true,
+  })
 
   useEffect(() => {
     // Scroll to bottom when messages change
@@ -89,6 +96,11 @@ export function AiChat() {
     }
   }
 
+  // Function to render markdown content
+  const renderMarkdown = (content: string) => {
+    return { __html: md.render(content) }
+  }
+
   return (
     <Card className="flex flex-col h-[500px]">
       <CardHeader>
@@ -115,7 +127,14 @@ export function AiChat() {
                       message.sender === "user" ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-800"
                     }`}
                   >
-                    {message.content}
+                    {message.sender === "ai" ? (
+                      <div
+                        className="prose prose-sm max-w-none"
+                        dangerouslySetInnerHTML={renderMarkdown(message.content)}
+                      />
+                    ) : (
+                      message.content
+                    )}
                   </div>
                   {message.sender === "user" && (
                     <Avatar className="h-8 w-8">

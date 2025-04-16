@@ -25,14 +25,39 @@ export function DailyChallenge() {
   const fetchChallenge = async () => {
     setLoading(true)
     try {
+      // Check if the challenges table exists in Supabase
       const response = await fetch("/api/challenges")
+
       if (!response.ok) {
-        throw new Error("Failed to fetch challenge")
+        // If the API returns an error, use a fallback challenge
+        console.error("Challenge API error:", await response.text())
+        setChallenge({
+          id: "fallback-1",
+          title: "JavaScript Array Methods",
+          description:
+            "Implement a function that takes an array of numbers and returns a new array with only the even numbers.",
+          difficulty: "medium",
+          type: "JavaScript",
+          link: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
+          completed: false,
+        })
+      } else {
+        const { data } = await response.json()
+        setChallenge(data)
       }
-      const { data } = await response.json()
-      setChallenge(data)
     } catch (error) {
       console.error("Error fetching challenge:", error)
+      // Provide a fallback challenge when the API fails
+      setChallenge({
+        id: "fallback-1",
+        title: "JavaScript Array Methods",
+        description:
+          "Implement a function that takes an array of numbers and returns a new array with only the even numbers.",
+        difficulty: "medium",
+        type: "JavaScript",
+        link: "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array",
+        completed: false,
+      })
     } finally {
       setLoading(false)
     }
