@@ -110,7 +110,7 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 
 ## 📁 Project Structure
 
-\`\`\`
+```
 codepulse/
 ├── app/                    # Next.js App Router
 │   ├── api/                # API routes
@@ -130,7 +130,7 @@ codepulse/
 ├── middleware.ts           # Next.js middleware for auth protection
 ├── .env.local              # Environment variables (not in repo)
 └── ...                     # Config files
-\`\`\`
+```
 
 ## 🔐 Authentication Flow
 
